@@ -11,6 +11,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -673,6 +674,85 @@ public class Worder extends javax.swing.JFrame {
         jTextPane1.getInputMap().put(KeyStroke.getKeyStroke("control Y"), "Redo");
     }
 
+    public void leerDocumento(){
+        MyFileFilterTXT filterTXT = new MyFileFilterTXT();
+        MyFileFilterRTF filterRTF = new MyFileFilterRTF();
+
+        //Ahora creamos un selector que nos decidirá en que extensión guardar
+        JFileChooser selector = new JFileChooser();
+        selector.setMultiSelectionEnabled(true);
+
+        //Añadimos las extensiones en las que guardará
+        selector.addChoosableFileFilter(filterTXT);
+        selector.addChoosableFileFilter(filterRTF);
+
+        //Si damos a "Guardar" se cerrará la ventana
+        selector.setApproveButtonText("Abrir");
+
+        int returnVal = selector.showOpenDialog(this);
+        if (returnVal != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        //Empiezo colocando el BufferedWriter a null
+        BufferedReader archivo_entrada = null;
+        try {
+            //Si guardo en TXT
+            if (selector.getFileFilter() == filterTXT) {selector.setApproveButtonText("Abrir");
+                File archivo = selector.getSelectedFile();
+                if (!archivo.getName().endsWith(".txt")) {
+                    //Hacemos que guarde con el nombre del archivo más la extensión
+                    archivo = new File(archivo.getAbsolutePath() + ".txt");
+                }
+                //Asocio el archivo al FileWriter y ya queda cargado el Buffer
+                archivo_entrada = new BufferedReader(new FileReader(archivo));
+                jTextPane1.read(archivo_entrada, this);
+                
+            } else if (selector.getFileFilter() == filterRTF) {
+                //Si guardo en RTF
+                File archivo = selector.getSelectedFile();
+                if (!archivo.getName().endsWith(".rtf")) {
+                    archivo = new File(archivo.getAbsolutePath() + ".rtf");
+                }
+                StyledDocument doc = (StyledDocument) jTextPane1.getDocument();
+                HTMLEditorKit kit = new HTMLEditorKit();
+
+                BufferedInputStream in;
+
+                try {
+                    in = new BufferedInputStream(new FileInputStream(selector.getSelectedFile().getAbsoluteFile() + ".rtf"));
+
+                    kit.read(in, doc, doc.getStartPosition().getOffset());
+
+                } catch (FileNotFoundException e) {
+
+                } catch (IOException e) {
+
+                } catch (BadLocationException e) {
+
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "Debe de elegir una extensión para el archivo");
+                //Volvemos a llamar a la ventana de guardar
+                leerDocumento();
+
+            }
+
+        } catch (IOException e) {
+        } finally {
+            if (archivo_entrada != null) {
+                try {
+                    //Cierro el buffer
+                    archivo_entrada.close();
+                } catch (IOException e) {
+
+                }
+            }
+
+        }
+        //Hago el acceso de tecla para la función "Abrir"
+        jTextPane1.getInputMap().put(KeyStroke.getKeyStroke("control O"), "Open");
+    }
     public void guardarDocumento() {
         FileNameExtensionFilter filterTXT = new FileNameExtensionFilter("Documento de texto (.txt)", ".txt");
         FileNameExtensionFilter filterRTF = new FileNameExtensionFilter("Documento de texto enriquecido (.rtf)", ".rtf");
@@ -993,45 +1073,8 @@ public class Worder extends javax.swing.JFrame {
 
     private void jMenuItemAbrirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemAbrirActionPerformed
         // TODO add your handling code here:
-
-        final JFileChooser selector = new JFileChooser();                                                       //Creo el selector
-        selector.setApproveButtonText("Abrir");
-        MyFileFilterTXT filtro_txt = new MyFileFilterTXT();
-        selector.setFileFilter(filtro_txt);
-        selector.addChoosableFileFilter(filtro_txt);
-        //Muestro el cuadro de abrir archivo
-        int returnVal = selector.showOpenDialog(this);
-        if (returnVal != JFileChooser.APPROVE_OPTION) {
-            return;
-        } else if (returnVal != JFileChooser.CANCEL_OPTION) {
-
-        }
-
-        File archivo = selector.getSelectedFile();
-        if (!archivo.getName().endsWith(".txt")) {
-            archivo = new File(archivo.getAbsolutePath() + ".txt");
-
-        }
-        //Coloco el BufferedReader a nulo
-        BufferedReader archivo_entrada = null;
-        try {
-            //Asocio el archivo introducido a FileReader y con este a BufferedReader
-            archivo_entrada = new BufferedReader(new FileReader(archivo));
-            //Leo el archivo y mediante el Buffer traspaso el texto al jTextPane1
-            jTextPane1.read(archivo_entrada, evt);
-        } catch (IOException e) {
-        } finally {
-            if (archivo_entrada != null) {
-                try {
-                    //Cierro el Buffer
-                    archivo_entrada.close();
-                } catch (IOException e) {
-
-                }
-            }
-        }
-        //Hago el acceso de tecla para la función "Abrir"
-        jTextPane1.getInputMap().put(KeyStroke.getKeyStroke("control O"), "Open");
+        leerDocumento();
+        
     }//GEN-LAST:event_jMenuItemAbrirActionPerformed
 
     private void jMenuItemCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemCopyActionPerformed
@@ -1164,7 +1207,7 @@ public class Worder extends javax.swing.JFrame {
 
     private void jButtonOpenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonOpenActionPerformed
         // TODO add your handling code here:
-        jMenuItemAbrirActionPerformed(evt);
+        leerDocumento();
     }//GEN-LAST:event_jButtonOpenActionPerformed
 
     private void jButtonNuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonNuevoActionPerformed
