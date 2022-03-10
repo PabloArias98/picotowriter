@@ -70,18 +70,16 @@ public class Worder extends javax.swing.JFrame {
     public Worder() {
         //Inicializar componentes del programa
         initComponents();
-        
+
         //Array de las fuentes
         String[] fontNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
         attributeSet = new SimpleAttributeSet();
+        
         //Variables de memoria de edición
         fuente_seleccionada = "Arial";
         estilo_seleccionado = Font.PLAIN;
         tamaño_seleccionado = 14;
 
-        //Kits de HTML y RTF, para impresora
-        //jTextPane1.setEditorKit(new HTMLEditorKit());
-        //jTextPane1.setEditorKit(new RTFEditorKit());
         //Inicializamos el UndoManager el cual será quien nos permita deshacer y rehacer cambios
         undo = new UndoManager();
 
@@ -674,7 +672,7 @@ public class Worder extends javax.swing.JFrame {
         jTextPane1.getInputMap().put(KeyStroke.getKeyStroke("control Y"), "Redo");
     }
 
-    public void leerDocumento(){
+    public void leerDocumento() {
         MyFileFilterTXT filterTXT = new MyFileFilterTXT();
         MyFileFilterRTF filterRTF = new MyFileFilterRTF();
 
@@ -684,7 +682,7 @@ public class Worder extends javax.swing.JFrame {
 
         //Removemos el "All Files" del recuadro
         selector.setAcceptAllFileFilterUsed(false);
-        
+
         //Añadimos las extensiones en las que guardará
         selector.addChoosableFileFilter(filterTXT);
         selector.addChoosableFileFilter(filterRTF);
@@ -701,7 +699,8 @@ public class Worder extends javax.swing.JFrame {
         BufferedReader archivo_entrada = null;
         try {
             //Si leo en TXT
-            if (selector.getFileFilter() == filterTXT) {selector.setApproveButtonText("Abrir");
+            if (selector.getFileFilter() == filterTXT) {
+                selector.setApproveButtonText("Abrir");
                 File archivo = selector.getSelectedFile();
                 if (!archivo.getName().endsWith(".txt")) {
                     //Hacemos que abra con el nombre del archivo más la extensión
@@ -710,8 +709,9 @@ public class Worder extends javax.swing.JFrame {
                 //Asocio el archivo al FileReader y ya queda cargado el Buffer
                 archivo_entrada = new BufferedReader(new FileReader(archivo));
                 jTextPane1.read(archivo_entrada, this);
-                
+
             } else if (selector.getFileFilter() == filterRTF) {
+                
                 //Si leo en RTF
                 File archivo = selector.getSelectedFile();
                 if (!archivo.getName().endsWith(".rtf")) {
@@ -756,20 +756,22 @@ public class Worder extends javax.swing.JFrame {
         //Hago el acceso de tecla para la función "Abrir"
         jTextPane1.getInputMap().put(KeyStroke.getKeyStroke("control O"), "Open");
     }
+
     public void guardarDocumento() {
         FileNameExtensionFilter filterTXT = new FileNameExtensionFilter("Documento de texto (.txt)", ".txt");
         FileNameExtensionFilter filterRTF = new FileNameExtensionFilter("Documento de texto enriquecido (.rtf)", ".rtf");
+        FileNameExtensionFilter filterHTML = new FileNameExtensionFilter("Página web (.html)", ".html");
 
         //Ahora creamos un selector que nos decidirá en que extensión guardar
         JFileChooser selector = new JFileChooser();
         selector.setMultiSelectionEnabled(true);
-        
+
         //Removemos el "All Files" del recuadro
         selector.setAcceptAllFileFilterUsed(false);
         //Añadimos las extensiones en las que guardará
         selector.addChoosableFileFilter(filterTXT);
         selector.addChoosableFileFilter(filterRTF);
-
+        selector.addChoosableFileFilter(filterHTML);
         //Si damos a "Guardar" se cerrará la ventana
         selector.setApproveButtonText("Guardar");
 
@@ -782,7 +784,8 @@ public class Worder extends javax.swing.JFrame {
         BufferedWriter archivo_salida = null;
         try {
             //Si guardo en TXT
-            if (selector.getFileFilter() == filterTXT) {selector.setApproveButtonText("Guardar");
+            if (selector.getFileFilter() == filterTXT) {
+                selector.setApproveButtonText("Guardar");
                 File archivo = selector.getSelectedFile();
                 if (!archivo.getName().endsWith(".txt")) {
                     //Hacemos que guarde con el nombre del archivo más la extensión
@@ -815,6 +818,33 @@ public class Worder extends javax.swing.JFrame {
                 } catch (BadLocationException e) {
 
                 }
+            } else if (selector.getFileFilter() == filterHTML) {
+                File archivo = selector.getSelectedFile();
+                
+                if (!archivo.getName().endsWith(".html")) {
+                    //Hacemos que guarde con el nombre del archivo más la extensión
+                    archivo = new File(archivo.getAbsolutePath() + ".html");
+                }
+
+                //Se crea el contenido HTML a partir del archivo, se le pasa el documento por el constructor
+                StyledDocument doc = (StyledDocument) jTextPane1.getDocument();
+                HTMLWriter pagina_nueva = new HTMLWriter(doc);
+                
+                //Se obtiene el HTML creado
+                String contenidoHTML = pagina_nueva.getHTML();
+                
+                //Asocio el archivo al FileWriter y ya queda cargado el Buffer
+                try ( FileOutputStream fos = new FileOutputStream(archivo);  BufferedOutputStream bos = new BufferedOutputStream(fos)) {
+                    //convert string to byte array
+                    byte[] bytes = contenidoHTML.getBytes();
+                    //write byte array to file
+                    bos.write(bytes);
+                    bos.close();
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
             } else {
                 JOptionPane.showMessageDialog(null, "Debe de elegir una extensión para el archivo");
                 //Volvemos a llamar a la ventana de guardar
@@ -1079,7 +1109,7 @@ public class Worder extends javax.swing.JFrame {
     private void jMenuItemAbrirActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemAbrirActionPerformed
         // TODO add your handling code here:
         leerDocumento();
-        
+
     }//GEN-LAST:event_jMenuItemAbrirActionPerformed
 
     private void jMenuItemCopyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemCopyActionPerformed
