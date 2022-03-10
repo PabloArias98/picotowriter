@@ -694,35 +694,35 @@ public class Worder extends javax.swing.JFrame {
             return;
         }
 
-        //Empiezo colocando el BufferedWriter a null
+        //Empiezo colocando el BufferedReader a null
         BufferedReader archivo_entrada = null;
         try {
-            //Si guardo en TXT
+            //Si leo en TXT
             if (selector.getFileFilter() == filterTXT) {selector.setApproveButtonText("Abrir");
                 File archivo = selector.getSelectedFile();
                 if (!archivo.getName().endsWith(".txt")) {
-                    //Hacemos que guarde con el nombre del archivo más la extensión
+                    //Hacemos que abra con el nombre del archivo más la extensión
                     archivo = new File(archivo.getAbsolutePath() + ".txt");
                 }
-                //Asocio el archivo al FileWriter y ya queda cargado el Buffer
+                //Asocio el archivo al FileReader y ya queda cargado el Buffer
                 archivo_entrada = new BufferedReader(new FileReader(archivo));
                 jTextPane1.read(archivo_entrada, this);
                 
             } else if (selector.getFileFilter() == filterRTF) {
-                //Si guardo en RTF
+                //Si leo en RTF
                 File archivo = selector.getSelectedFile();
                 if (!archivo.getName().endsWith(".rtf")) {
                     archivo = new File(archivo.getAbsolutePath() + ".rtf");
                 }
-                StyledDocument doc = (StyledDocument) jTextPane1.getDocument();
+
                 HTMLEditorKit kit = new HTMLEditorKit();
+                jTextPane1.setEditorKit(kit);
 
                 BufferedInputStream in;
 
                 try {
-                    in = new BufferedInputStream(new FileInputStream(selector.getSelectedFile().getAbsoluteFile() + ".rtf"));
-
-                    kit.read(in, doc, doc.getStartPosition().getOffset());
+                    in = new BufferedInputStream(new FileInputStream(archivo));
+                    kit.read(in, jTextPane1.getDocument(), 0);
 
                 } catch (FileNotFoundException e) {
 
@@ -733,7 +733,7 @@ public class Worder extends javax.swing.JFrame {
                 }
             } else {
                 JOptionPane.showMessageDialog(null, "Debe de elegir una extensión para el archivo");
-                //Volvemos a llamar a la ventana de guardar
+                //Volvemos a llamar a la ventana de abrir
                 leerDocumento();
 
             }
