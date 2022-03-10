@@ -682,6 +682,9 @@ public class Worder extends javax.swing.JFrame {
         JFileChooser selector = new JFileChooser();
         selector.setMultiSelectionEnabled(true);
 
+        //Removemos el "All Files" del recuadro
+        selector.setAcceptAllFileFilterUsed(false);
+        
         //Añadimos las extensiones en las que guardará
         selector.addChoosableFileFilter(filterTXT);
         selector.addChoosableFileFilter(filterRTF);
@@ -760,7 +763,9 @@ public class Worder extends javax.swing.JFrame {
         //Ahora creamos un selector que nos decidirá en que extensión guardar
         JFileChooser selector = new JFileChooser();
         selector.setMultiSelectionEnabled(true);
-
+        
+        //Removemos el "All Files" del recuadro
+        selector.setAcceptAllFileFilterUsed(false);
         //Añadimos las extensiones en las que guardará
         selector.addChoosableFileFilter(filterTXT);
         selector.addChoosableFileFilter(filterRTF);
