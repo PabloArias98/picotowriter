@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package picotowriters;
 
 import java.awt.Color;
@@ -28,6 +23,7 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JColorChooser;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -62,43 +58,59 @@ public class Worder extends javax.swing.JFrame {
     String fuente_seleccionada;
     int tamaño_seleccionado;
     Color color_seleccionado;
-    SimpleAttributeSet attributeSet;
+    SimpleAttributeSet attributeSet = new SimpleAttributeSet();
+    String fontNames[];
 
     /**
      * Creates new form Worder
      */
     public Worder() {
+        
         //Inicializar componentes del programa
         initComponents();
-
-        //Array de las fuentes
-        String[] fontNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
-        attributeSet = new SimpleAttributeSet();
         
         //Variables de memoria de edición
-        fuente_seleccionada = "Arial";
-        estilo_seleccionado = Font.PLAIN;
-        tamaño_seleccionado = 14;
+        cargarFuentesComboBox();
 
         //Inicializamos el UndoManager el cual será quien nos permita deshacer y rehacer cambios
         undo = new UndoManager();
-
-        //Rellenamos el comboBox de las fuentes
-        for (String font : fontNames) {
-            jComboBoxFont.addItem(font);
-        }
 
         //Rellenamos el comboBox de los tamaños
         for (int i = 8; i < 80; i++) {
             jComboBoxTamanoTexto.addItem(String.valueOf(i));
         }
+        fuente_seleccionada = "Arial";
+        tamaño_seleccionado = 14;
+        estilo_seleccionado = Font.PLAIN;
         //Recargo inicialmente que mostrar en los jComboBox
-        jComboBoxFont.setSelectedItem("Arial");
-        jComboBoxTamanoTexto.setSelectedItem("14");
+        jComboBoxFont.setSelectedItem(String.valueOf(fuente_seleccionada));
+        jComboBoxTamanoTexto.setSelectedItem(String.valueOf(tamaño_seleccionado));
+        
+        jTextPane1.setFont(new Font(fuente_seleccionada, estilo_seleccionado, tamaño_seleccionado));
         //Utilizo una fuente inicial
-        jTextPane1.setFont(new Font("Arial", Font.PLAIN, 14));
         //Pongo en marcha el UndoManager
         addUndoManager(undo, jTextPane1);
+    }
+    
+    public Worder(JTextPane panelTexto, String fuente_a_coger){
+        this.fuente_seleccionada = fuente_a_coger;
+        this.jTextPane1 = panelTexto;
+        
+        jComboBoxFont = new JComboBox();
+        cargarFuentesComboBox();
+        jComboBoxFont.setSelectedItem(String.valueOf(fuente_seleccionada));
+        
+        StyleConstants.setFontFamily(attributeSet, fuente_seleccionada);
+        jTextPane1.setCharacterAttributes(attributeSet, true);
+    }
+    
+    void cargarFuentesComboBox(){
+        //Array de las fuentes
+        fontNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+        //Rellenamos el comboBox de las fuentes
+        for (String font : fontNames) {
+            jComboBoxFont.addItem(font);
+        }
     }
 
     /**
@@ -492,7 +504,8 @@ public class Worder extends javax.swing.JFrame {
         });
         jMenu4.add(jCheckBoxMenuItemPlain);
 
-        jMenuItemFont.setText("Seleccionar fuente");
+        jMenuItemFont.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, java.awt.event.InputEvent.ALT_DOWN_MASK | java.awt.event.InputEvent.SHIFT_DOWN_MASK));
+        jMenuItemFont.setText("Propiedades de fuente...");
         jMenuItemFont.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItemFontActionPerformed(evt);
@@ -758,6 +771,8 @@ public class Worder extends javax.swing.JFrame {
     }
 
     public void guardarDocumento() {
+        
+        //Empezamos declarando las extensiones de las que dispondrá el asistente de guardado
         FileNameExtensionFilter filterTXT = new FileNameExtensionFilter("Documento de texto (.txt)", ".txt");
         FileNameExtensionFilter filterRTF = new FileNameExtensionFilter("Documento de texto enriquecido (.rtf)", ".rtf");
         FileNameExtensionFilter filterHTML = new FileNameExtensionFilter("Página web (.html)", ".html");
@@ -768,10 +783,12 @@ public class Worder extends javax.swing.JFrame {
 
         //Removemos el "All Files" del recuadro
         selector.setAcceptAllFileFilterUsed(false);
+        
         //Añadimos las extensiones en las que guardará
         selector.addChoosableFileFilter(filterTXT);
         selector.addChoosableFileFilter(filterRTF);
         selector.addChoosableFileFilter(filterHTML);
+        
         //Si damos a "Guardar" se cerrará la ventana
         selector.setApproveButtonText("Guardar");
 
@@ -801,6 +818,7 @@ public class Worder extends javax.swing.JFrame {
                 if (!archivo.getName().endsWith(".rtf")) {
                     archivo = new File(archivo.getAbsolutePath() + ".rtf");
                 }
+                
                 StyledDocument doc = (StyledDocument) jTextPane1.getDocument();
                 HTMLEditorKit kit = new HTMLEditorKit();
 
@@ -873,6 +891,7 @@ public class Worder extends javax.swing.JFrame {
         StyledDocument doc = (StyledDocument) jTextPane1.getDocument();
 
         if (es_cursiva == false) {
+            
             //Defino el inicio y final de la selección
             int selectionEnd = jTextPane1.getSelectionEnd();
             int selectionStart = jTextPane1.getSelectionStart();
@@ -926,6 +945,7 @@ public class Worder extends javax.swing.JFrame {
         StyledDocument doc = (StyledDocument) jTextPane1.getDocument();
 
         if (es_negrita == false) {
+            
             //Si negrita no está aplicada la aplico
             int selectionEnd = jTextPane1.getSelectionEnd();
             int selectionStart = jTextPane1.getSelectionStart();
@@ -1027,6 +1047,7 @@ public class Worder extends javax.swing.JFrame {
             StyleConstants.setForeground(attributeSet, color_seleccionado);
             StyleConstants.setFontSize(attributeSet, tamaño_seleccionado);
             jTextPane1.setCharacterAttributes(attributeSet, true);
+            
         } else {      //Para cambiar el tamaño de lo seleccionado
 
             for (int i = selectionStart; i < selectionEnd; i++) {
@@ -1154,7 +1175,12 @@ public class Worder extends javax.swing.JFrame {
 
     private void jMenuItemFontActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemFontActionPerformed
         // TODO add your handling code here:
-        jComboBoxFont.showPopup();
+        //En futuras versiones se creará un cuadro en específico para cambiar la fuente
+        CuadroFuente estancia = new CuadroFuente();
+        estancia.inicializarCuadro(fontNames, fuente_seleccionada, jTextPane1);
+        estancia.setVisible(true);
+
+        
     }//GEN-LAST:event_jMenuItemFontActionPerformed
 
     private void jMenuItemSizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSizeActionPerformed
@@ -1257,7 +1283,7 @@ public class Worder extends javax.swing.JFrame {
         jTextPane1.setEditorKit(new HTMLEditorKit());
         System.out.println(jTextPane1.getContentType());
         jTextPane1.setContentType("text/html");
-        JOptionPane.showMessageDialog(null, "Ahora está escribiendo usted en código HTML, las etiquitas se van añadiendo");
+        JOptionPane.showMessageDialog(null, "Ahora está escribiendo en código HTML, las etiquitas se van añadiendo");
         addUndoManager(undo, jTextPane1);
     }//GEN-LAST:event_jButtonHTMLActionPerformed
 
