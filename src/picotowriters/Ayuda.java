@@ -49,7 +49,7 @@ public class Ayuda extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Temas de ayuda");
-        setLocation(new java.awt.Point(365, 350));
+        setLocation(new java.awt.Point(355, 330));
         setResizable(false);
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
