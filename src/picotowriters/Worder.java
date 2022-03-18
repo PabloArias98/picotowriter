@@ -1,11 +1,21 @@
 package picotowriters;
 
+import com.lowagie.text.PageSize;
+import com.lowagie.text.pdf.DefaultFontMapper;
+import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfWriter;
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Font;
+import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
+import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -18,6 +28,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -25,8 +37,11 @@ import javax.swing.ImageIcon;
 import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.TransferHandler;
@@ -60,15 +75,18 @@ public class Worder extends javax.swing.JFrame {
     Color color_seleccionado;
     SimpleAttributeSet attributeSet = new SimpleAttributeSet();
     String fontNames[];
+    int inch = Toolkit.getDefaultToolkit().getScreenResolution();
+
+    float pixelToPoint = (float) 72 / (float) inch;
 
     /**
      * Creates new form Worder
      */
     public Worder() {
-        
+
         //Inicializar componentes del programa
         initComponents();
-        
+
         //Variables de memoria de edición
         cargarFuentesComboBox();
 
@@ -85,26 +103,26 @@ public class Worder extends javax.swing.JFrame {
         //Recargo inicialmente que mostrar en los jComboBox
         jComboBoxFont.setSelectedItem(String.valueOf(fuente_seleccionada));
         jComboBoxTamanoTexto.setSelectedItem(String.valueOf(tamaño_seleccionado));
-        
+
         jTextPane1.setFont(new Font(fuente_seleccionada, estilo_seleccionado, tamaño_seleccionado));
         //Utilizo una fuente inicial
         //Pongo en marcha el UndoManager
         addUndoManager(undo, jTextPane1);
     }
-    
-    public Worder(JTextPane panelTexto, String fuente_a_coger){
+
+    public Worder(JTextPane panelTexto, String fuente_a_coger) {
         this.fuente_seleccionada = fuente_a_coger;
         this.jTextPane1 = panelTexto;
-        
+
         jComboBoxFont = new JComboBox();
         cargarFuentesComboBox();
         jComboBoxFont.setSelectedItem(String.valueOf(fuente_seleccionada));
-        
+
         StyleConstants.setFontFamily(attributeSet, fuente_seleccionada);
         jTextPane1.setCharacterAttributes(attributeSet, true);
     }
-    
-    void cargarFuentesComboBox(){
+
+    void cargarFuentesComboBox() {
         //Array de las fuentes
         fontNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
         //Rellenamos el comboBox de las fuentes
@@ -124,6 +142,7 @@ public class Worder extends javax.swing.JFrame {
 
         jMenuItem3 = new javax.swing.JMenuItem();
         jPopupMenu1 = new javax.swing.JPopupMenu();
+        jMenuItem1 = new javax.swing.JMenuItem();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextPane1 = new javax.swing.JTextPane();
         jRadioButtonNegrita = new javax.swing.JRadioButton();
@@ -144,23 +163,32 @@ public class Worder extends javax.swing.JFrame {
         jSliderTamanoTexto = new javax.swing.JSlider();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
+        jButtonBuscar = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItemNuevo = new javax.swing.JMenuItem();
+        jSeparator10 = new javax.swing.JPopupMenu.Separator();
         jMenuItemAbrir = new javax.swing.JMenuItem();
         jMenuItemGuardar = new javax.swing.JMenuItem();
+        jSeparator9 = new javax.swing.JPopupMenu.Separator();
         jMenuItemImprimir = new javax.swing.JMenuItem();
+        jMenuItemPDF = new javax.swing.JMenuItem();
+        jSeparator7 = new javax.swing.JPopupMenu.Separator();
         jMenuItemHTML = new javax.swing.JMenuItem();
         jMenuItemRTF = new javax.swing.JMenuItem();
-        jMenuItemExtra = new javax.swing.JMenuItem();
+        jSeparator8 = new javax.swing.JPopupMenu.Separator();
         jMenuItemSalir = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
         jMenuItemCopy = new javax.swing.JMenuItem();
         jMenuItemSelectAll = new javax.swing.JMenuItem();
         jMenuItemCut = new javax.swing.JMenuItem();
         jMenuItemPaste = new javax.swing.JMenuItem();
+        jSeparator3 = new javax.swing.JPopupMenu.Separator();
         jMenuItemUndo = new javax.swing.JMenuItem();
         jMenuItemRedo = new javax.swing.JMenuItem();
+        jSeparator5 = new javax.swing.JPopupMenu.Separator();
+        jMenuItemBuscar = new javax.swing.JMenuItem();
+        jSeparator6 = new javax.swing.JPopupMenu.Separator();
         jMenuItemAlignCenter = new javax.swing.JMenuItem();
         jMenuItemAlignIzq = new javax.swing.JMenuItem();
         jMenuItemAlignDer = new javax.swing.JMenuItem();
@@ -168,12 +196,17 @@ public class Worder extends javax.swing.JFrame {
         jMenuItemNegrita = new javax.swing.JMenuItem();
         jMenuItemCursi = new javax.swing.JMenuItem();
         jMenuItemTacha = new javax.swing.JMenuItem();
+        jSeparator1 = new javax.swing.JPopupMenu.Separator();
         jCheckBoxMenuItemPlain = new javax.swing.JCheckBoxMenuItem();
-        jMenuItemFont = new javax.swing.JMenuItem();
+        jSeparator2 = new javax.swing.JPopupMenu.Separator();
         jMenuItemSize = new javax.swing.JMenuItem();
         jMenuItemTextColor = new javax.swing.JMenuItem();
         jMenuItemBackgroundColor = new javax.swing.JMenuItem();
+        jMenuExtras = new javax.swing.JMenu();
+        jMenuItemExtra = new javax.swing.JMenuItem();
         jMenu3 = new javax.swing.JMenu();
+        jMenuTemasAyuda = new javax.swing.JMenuItem();
+        jSeparator4 = new javax.swing.JPopupMenu.Separator();
         jMenuItemAyuda = new javax.swing.JMenuItem();
 
         jMenuItem3.setText("jMenuItem3");
@@ -184,6 +217,8 @@ public class Worder extends javax.swing.JFrame {
                 jPopupMenu1MouseClicked(evt);
             }
         });
+
+        jMenuItem1.setText("jMenuItem1");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Picoto Writer 1.1");
@@ -309,21 +344,28 @@ public class Worder extends javax.swing.JFrame {
 
         jLabel2.setText("100");
 
+        jButtonBuscar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/picotowriters/icons/icon_find.png"))); // NOI18N
+        jButtonBuscar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonBuscarActionPerformed(evt);
+            }
+        });
+
         jMenu1.setText("Archivo");
 
-        jMenuItemNuevo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_DOWN_MASK));
-        jMenuItemNuevo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/picotowriters/icons/icon_new.png"))); // NOI18N
-        jMenuItemNuevo.setText("Nuevo");
+        jMenuItemNuevo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.ALT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jMenuItemNuevo.setText("Nuevo documento");
+        jMenuItemNuevo.setToolTipText("");
         jMenuItemNuevo.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItemNuevoActionPerformed(evt);
             }
         });
         jMenu1.add(jMenuItemNuevo);
+        jMenu1.add(jSeparator10);
 
         jMenuItemAbrir.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_DOWN_MASK));
-        jMenuItemAbrir.setIcon(new javax.swing.ImageIcon(getClass().getResource("/picotowriters/icons/icon_open.png"))); // NOI18N
-        jMenuItemAbrir.setText("Abrir");
+        jMenuItemAbrir.setText("Abrir...");
         jMenuItemAbrir.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItemAbrirActionPerformed(evt);
@@ -331,18 +373,18 @@ public class Worder extends javax.swing.JFrame {
         });
         jMenu1.add(jMenuItemAbrir);
 
-        jMenuItemGuardar.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_DOWN_MASK));
-        jMenuItemGuardar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/picotowriters/icons/icon_save.png"))); // NOI18N
-        jMenuItemGuardar.setText("Guardar como...");
+        jMenuItemGuardar.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_G, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jMenuItemGuardar.setText("Guardar como");
+        jMenuItemGuardar.setToolTipText("");
         jMenuItemGuardar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItemGuardarActionPerformed(evt);
             }
         });
         jMenu1.add(jMenuItemGuardar);
+        jMenu1.add(jSeparator9);
 
         jMenuItemImprimir.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_I, java.awt.event.InputEvent.CTRL_DOWN_MASK));
-        jMenuItemImprimir.setIcon(new javax.swing.ImageIcon(getClass().getResource("/picotowriters/icons/icon_print.png"))); // NOI18N
         jMenuItemImprimir.setText("Imprimir documento");
         jMenuItemImprimir.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -351,7 +393,15 @@ public class Worder extends javax.swing.JFrame {
         });
         jMenu1.add(jMenuItemImprimir);
 
-        jMenuItemHTML.setIcon(new javax.swing.ImageIcon(getClass().getResource("/picotowriters/icons/icon_web.png"))); // NOI18N
+        jMenuItemPDF.setText("Exportar a PDF...");
+        jMenuItemPDF.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemPDFActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItemPDF);
+        jMenu1.add(jSeparator7);
+
         jMenuItemHTML.setText("Cambiar a código HTML");
         jMenuItemHTML.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -360,7 +410,6 @@ public class Worder extends javax.swing.JFrame {
         });
         jMenu1.add(jMenuItemHTML);
 
-        jMenuItemRTF.setIcon(new javax.swing.ImageIcon(getClass().getResource("/picotowriters/icons/icon_rtf.png"))); // NOI18N
         jMenuItemRTF.setText("Regresar a código RTF");
         jMenuItemRTF.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -368,17 +417,8 @@ public class Worder extends javax.swing.JFrame {
             }
         });
         jMenu1.add(jMenuItemRTF);
+        jMenu1.add(jSeparator8);
 
-        jMenuItemExtra.setIcon(new javax.swing.ImageIcon(getClass().getResource("/picotowriters/icons/icon_font.png"))); // NOI18N
-        jMenuItemExtra.setText("Abrir el transcriptor de archivos");
-        jMenuItemExtra.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItemExtraActionPerformed(evt);
-            }
-        });
-        jMenu1.add(jMenuItemExtra);
-
-        jMenuItemSalir.setIcon(new javax.swing.ImageIcon(getClass().getResource("/picotowriters/icons/icon_exit.png"))); // NOI18N
         jMenuItemSalir.setText("Salir");
         jMenuItemSalir.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -400,6 +440,7 @@ public class Worder extends javax.swing.JFrame {
         });
         jMenu2.add(jMenuItemCopy);
 
+        jMenuItemSelectAll.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         jMenuItemSelectAll.setText("Seleccionar todo");
         jMenuItemSelectAll.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -424,6 +465,7 @@ public class Worder extends javax.swing.JFrame {
             }
         });
         jMenu2.add(jMenuItemPaste);
+        jMenu2.add(jSeparator3);
 
         jMenuItemUndo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         jMenuItemUndo.setText("Deshacer");
@@ -442,8 +484,19 @@ public class Worder extends javax.swing.JFrame {
             }
         });
         jMenu2.add(jMenuItemRedo);
+        jMenu2.add(jSeparator5);
 
-        jMenuItemAlignCenter.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_T, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jMenuItemBuscar.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jMenuItemBuscar.setText("Buscar texto...");
+        jMenuItemBuscar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemBuscarActionPerformed(evt);
+            }
+        });
+        jMenu2.add(jMenuItemBuscar);
+        jMenu2.add(jSeparator6);
+
+        jMenuItemAlignCenter.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_T, java.awt.event.InputEvent.SHIFT_DOWN_MASK));
         jMenuItemAlignCenter.setText("Alinear texto al centro");
         jMenuItemAlignCenter.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -472,7 +525,8 @@ public class Worder extends javax.swing.JFrame {
 
         jMenu4.setText("Formato");
 
-        jMenuItemNegrita.setText("Escribir en negrita");
+        jMenuItemNegrita.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_B, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jMenuItemNegrita.setText("En negrita");
         jMenuItemNegrita.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItemNegritaActionPerformed(evt);
@@ -480,7 +534,8 @@ public class Worder extends javax.swing.JFrame {
         });
         jMenu4.add(jMenuItemNegrita);
 
-        jMenuItemCursi.setText("Escribir en cursiva");
+        jMenuItemCursi.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_K, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jMenuItemCursi.setText("En cursiva");
         jMenuItemCursi.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItemCursiActionPerformed(evt);
@@ -488,13 +543,15 @@ public class Worder extends javax.swing.JFrame {
         });
         jMenu4.add(jMenuItemCursi);
 
-        jMenuItemTacha.setText("Escribir en tachado");
+        jMenuItemTacha.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_T, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jMenuItemTacha.setText("En tachado");
         jMenuItemTacha.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItemTachaActionPerformed(evt);
             }
         });
         jMenu4.add(jMenuItemTacha);
+        jMenu4.add(jSeparator1);
 
         jCheckBoxMenuItemPlain.setText("Pasar todo a texto plano");
         jCheckBoxMenuItemPlain.addActionListener(new java.awt.event.ActionListener() {
@@ -503,15 +560,7 @@ public class Worder extends javax.swing.JFrame {
             }
         });
         jMenu4.add(jCheckBoxMenuItemPlain);
-
-        jMenuItemFont.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, java.awt.event.InputEvent.ALT_DOWN_MASK | java.awt.event.InputEvent.SHIFT_DOWN_MASK));
-        jMenuItemFont.setText("Propiedades de fuente...");
-        jMenuItemFont.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItemFontActionPerformed(evt);
-            }
-        });
-        jMenu4.add(jMenuItemFont);
+        jMenu4.add(jSeparator2);
 
         jMenuItemSize.setText("Seleccionar tamaño");
         jMenuItemSize.addActionListener(new java.awt.event.ActionListener() {
@@ -529,7 +578,7 @@ public class Worder extends javax.swing.JFrame {
         });
         jMenu4.add(jMenuItemTextColor);
 
-        jMenuItemBackgroundColor.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jMenuItemBackgroundColor.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_B, java.awt.event.InputEvent.ALT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
         jMenuItemBackgroundColor.setText("Seleccionar color del fondo");
         jMenuItemBackgroundColor.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -540,10 +589,26 @@ public class Worder extends javax.swing.JFrame {
 
         jMenuBar1.add(jMenu4);
 
+        jMenuExtras.setText("Extras");
+
+        jMenuItemExtra.setText("Abrir el transcriptor de archivos");
+        jMenuItemExtra.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItemExtraActionPerformed(evt);
+            }
+        });
+        jMenuExtras.add(jMenuItemExtra);
+
+        jMenuBar1.add(jMenuExtras);
+
         jMenu3.setText("Ayuda");
 
-        jMenuItemAyuda.setIcon(new javax.swing.ImageIcon(getClass().getResource("/picotowriters/icons/icon_help.png"))); // NOI18N
-        jMenuItemAyuda.setText("Información");
+        jMenuTemasAyuda.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F1, 0));
+        jMenuTemasAyuda.setText("Temas de ayuda...");
+        jMenu3.add(jMenuTemasAyuda);
+        jMenu3.add(jSeparator4);
+
+        jMenuItemAyuda.setText("Acerca de");
         jMenuItemAyuda.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItemAyudaActionPerformed(evt);
@@ -580,8 +645,10 @@ public class Worder extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jButtonHTML)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButtonBuscar)
+                                .addGap(4, 4, 4)
                                 .addComponent(jButtonAyuda)))
-                        .addGap(88, 88, 88)
+                        .addGap(79, 79, 79)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jRadioButtonNegrita)
                             .addComponent(jRadioButtonCursiva)
@@ -602,7 +669,7 @@ public class Worder extends javax.swing.JFrame {
                                 .addComponent(jSliderTamanoTexto, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel2)))
-                        .addGap(0, 44, Short.MAX_VALUE)))
+                        .addGap(0, 38, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -623,7 +690,8 @@ public class Worder extends javax.swing.JFrame {
                         .addComponent(jRadioButtonTachado)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jRadioButtonNegrita))
-                    .addComponent(jButtonCuboColor, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                    .addComponent(jButtonCuboColor, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(jButtonBuscar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
@@ -724,7 +792,7 @@ public class Worder extends javax.swing.JFrame {
                 jTextPane1.read(archivo_entrada, this);
 
             } else if (selector.getFileFilter() == filterRTF) {
-                
+
                 //Si leo en RTF
                 File archivo = selector.getSelectedFile();
                 if (!archivo.getName().endsWith(".rtf")) {
@@ -771,7 +839,7 @@ public class Worder extends javax.swing.JFrame {
     }
 
     public void guardarDocumento() {
-        
+
         //Empezamos declarando las extensiones de las que dispondrá el asistente de guardado
         FileNameExtensionFilter filterTXT = new FileNameExtensionFilter("Documento de texto (.txt)", ".txt");
         FileNameExtensionFilter filterRTF = new FileNameExtensionFilter("Documento de texto enriquecido (.rtf)", ".rtf");
@@ -783,12 +851,12 @@ public class Worder extends javax.swing.JFrame {
 
         //Removemos el "All Files" del recuadro
         selector.setAcceptAllFileFilterUsed(false);
-        
+
         //Añadimos las extensiones en las que guardará
         selector.addChoosableFileFilter(filterTXT);
         selector.addChoosableFileFilter(filterRTF);
         selector.addChoosableFileFilter(filterHTML);
-        
+
         //Si damos a "Guardar" se cerrará la ventana
         selector.setApproveButtonText("Guardar");
 
@@ -818,7 +886,7 @@ public class Worder extends javax.swing.JFrame {
                 if (!archivo.getName().endsWith(".rtf")) {
                     archivo = new File(archivo.getAbsolutePath() + ".rtf");
                 }
-                
+
                 StyledDocument doc = (StyledDocument) jTextPane1.getDocument();
                 HTMLEditorKit kit = new HTMLEditorKit();
 
@@ -838,7 +906,7 @@ public class Worder extends javax.swing.JFrame {
                 }
             } else if (selector.getFileFilter() == filterHTML) {
                 File archivo = selector.getSelectedFile();
-                
+
                 if (!archivo.getName().endsWith(".html")) {
                     //Hacemos que guarde con el nombre del archivo más la extensión
                     archivo = new File(archivo.getAbsolutePath() + ".html");
@@ -847,10 +915,10 @@ public class Worder extends javax.swing.JFrame {
                 //Se crea el contenido HTML a partir del archivo, se le pasa el documento por el constructor
                 StyledDocument doc = (StyledDocument) jTextPane1.getDocument();
                 HTMLWriter pagina_nueva = new HTMLWriter(doc);
-                
+
                 //Se obtiene el HTML creado
                 String contenidoHTML = pagina_nueva.getHTML();
-                
+
                 //Asocio el archivo al FileWriter y ya queda cargado el Buffer
                 try ( FileOutputStream fos = new FileOutputStream(archivo);  BufferedOutputStream bos = new BufferedOutputStream(fos)) {
                     //convert string to byte array
@@ -886,12 +954,124 @@ public class Worder extends javax.swing.JFrame {
         jTextPane1.getInputMap().put(KeyStroke.getKeyStroke("control S"), "Save");
     }
 
+    public float convertToPoints(int pixels) {
+        return (float) (pixels * pixelToPoint);
+    }
+
+    public float convertToPixels(int points) {
+        return (float) (points / pixelToPoint);
+    }
+
+    protected Rectangle getVisibleEditorRect(JTextPane texto_a_maquetar) {
+    Rectangle alloc = texto_a_maquetar.getBounds();
+    
+    if ((alloc.width > 0) && (alloc.height > 0)) {
+      alloc.x = alloc.y = 0;
+      Insets insets = texto_a_maquetar.getInsets();
+      alloc.x += insets.left;
+      alloc.y += insets.top;
+      alloc.width -= insets.left + insets.right;
+      alloc.height -= insets.top + insets.bottom;
+      return alloc;
+    }
+    return null;
+  }
+
+    public void exportarAPDF() {
+        final JFileChooser selector = new JFileChooser();
+        
+        //Para luego abrir el archivo...
+        Desktop desktop = java.awt.Desktop.getDesktop();
+        
+        selector.setApproveButtonText("Guardar");
+        MyFileFilterPDF filtro_pdf = new MyFileFilterPDF();
+        selector.setFileFilter(filtro_pdf);
+        selector.addChoosableFileFilter(filtro_pdf);
+
+        int returnVal = selector.showSaveDialog(this);
+        if (returnVal != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        File archivo = selector.getSelectedFile();
+        if (!archivo.getName().endsWith(".pdf")) {
+            archivo = new File(archivo.getAbsolutePath() + ".pdf");
+        }
+
+        //Inicializamos el documento
+        com.lowagie.text.Document documento;
+        try {
+            documento = new com.lowagie.text.Document(PageSize.A4);
+            PdfWriter escritor = PdfWriter.getInstance(documento, new FileOutputStream(archivo));
+            
+            documento.setPageSize(new com.lowagie.text.Rectangle(612, 792));
+            
+            //Abrimos el documento para empezar a maquetarlo
+            documento.open();
+            PdfContentByte cb = escritor.getDirectContent();
+            cb.saveState();
+            cb.concatCTM(1, 0, 0, 1, 0, 0);
+
+            DefaultFontMapper mapper = new DefaultFontMapper();
+            
+            //Directorio de fuentes para el mapeador
+            mapper.insertDirectory("c:/windows/fonts");
+
+            Graphics2D g2 = cb.createGraphics(612, 792, mapper, true, .95f);
+
+            AffineTransform at = new AffineTransform();
+            at.translate(convertToPixels(20), convertToPixels(20));
+            at.scale(pixelToPoint, pixelToPoint);
+
+            g2.transform(at);
+
+            g2.setColor(Color.WHITE);
+            g2.fill(jTextPane1.getBounds());
+
+            Rectangle alloc = getVisibleEditorRect(jTextPane1);
+            jTextPane1.getUI().getRootView(jTextPane1).paint(g2, alloc);
+            g2.setColor(Color.BLACK);
+            g2.draw(jTextPane1.getBounds());
+
+            g2.dispose();
+            cb.restoreState();
+            documento.close();
+            try {
+                //Despues abrimos el archivo creado
+                desktop.open(archivo);
+            } catch (IOException ex) {
+                Logger.getLogger(Worder.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    void buscarTexto() {
+        int selectionEnd = jTextPane1.getSelectionEnd();
+        int selectionStart = jTextPane1.getSelectionStart();
+        if (selectionStart == selectionEnd) { //Si no hay nada seleccionado mando mensaje
+            JOptionPane.showMessageDialog(null, "Seleccione texto para buscar, por favor");
+        } else { //Si seleccioné algo...
+            String url = "https://www.google.com/search?q=" + jTextPane1.getSelectedText().replace(" ", "+");
+            Desktop desktop = java.awt.Desktop.getDesktop();
+            try {
+                desktop.browse(new URI(url));
+            } catch (URISyntaxException ex) {
+                Logger.getLogger(Worder.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(Worder.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+
+
     private void jRadioButtonCursivaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButtonCursivaActionPerformed
         // TODO add your handling code here:
         StyledDocument doc = (StyledDocument) jTextPane1.getDocument();
 
         if (es_cursiva == false) {
-            
+
             //Defino el inicio y final de la selección
             int selectionEnd = jTextPane1.getSelectionEnd();
             int selectionStart = jTextPane1.getSelectionStart();
@@ -945,7 +1125,7 @@ public class Worder extends javax.swing.JFrame {
         StyledDocument doc = (StyledDocument) jTextPane1.getDocument();
 
         if (es_negrita == false) {
-            
+
             //Si negrita no está aplicada la aplico
             int selectionEnd = jTextPane1.getSelectionEnd();
             int selectionStart = jTextPane1.getSelectionStart();
@@ -1047,7 +1227,7 @@ public class Worder extends javax.swing.JFrame {
             StyleConstants.setForeground(attributeSet, color_seleccionado);
             StyleConstants.setFontSize(attributeSet, tamaño_seleccionado);
             jTextPane1.setCharacterAttributes(attributeSet, true);
-            
+
         } else {      //Para cambiar el tamaño de lo seleccionado
 
             for (int i = selectionStart; i < selectionEnd; i++) {
@@ -1093,14 +1273,6 @@ public class Worder extends javax.swing.JFrame {
         } catch (CannotUndoException e) {
         }
     }//GEN-LAST:event_jButtonRedoActionPerformed
-
-    private void jMenuItemNuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemNuevoActionPerformed
-        // TODO add your handling code here:
-        jTextPane1.setText("");
-        jTextPane1.setBackground(Color.white);
-        jTextPane1.setForeground(Color.black);
-        jTextPane1.getInputMap().put(KeyStroke.getKeyStroke("control N"), "New");
-    }//GEN-LAST:event_jMenuItemNuevoActionPerformed
 
     private void jMenuItemTextColorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemTextColorActionPerformed
         // TODO add your handling code here:
@@ -1172,16 +1344,6 @@ public class Worder extends javax.swing.JFrame {
         // TODO add your handling code here:
         jButtonRedoActionPerformed(evt);
     }//GEN-LAST:event_jMenuItemRedoActionPerformed
-
-    private void jMenuItemFontActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemFontActionPerformed
-        // TODO add your handling code here:
-        //En futuras versiones se creará un cuadro en específico para cambiar la fuente
-        CuadroFuente estancia = new CuadroFuente();
-        estancia.inicializarCuadro(fontNames, fuente_seleccionada, jTextPane1);
-        estancia.setVisible(true);
-
-        
-    }//GEN-LAST:event_jMenuItemFontActionPerformed
 
     private void jMenuItemSizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemSizeActionPerformed
         // TODO add your handling code here:
@@ -1496,6 +1658,30 @@ public class Worder extends javax.swing.JFrame {
         estancia.setVisible(true);
     }//GEN-LAST:event_jMenuItemExtraActionPerformed
 
+    private void jButtonBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonBuscarActionPerformed
+        // TODO add your handling code here:
+        buscarTexto();
+
+    }//GEN-LAST:event_jButtonBuscarActionPerformed
+
+    private void jMenuItemBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemBuscarActionPerformed
+        // TODO add your handling code here:
+        buscarTexto();
+    }//GEN-LAST:event_jMenuItemBuscarActionPerformed
+
+    private void jMenuItemNuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemNuevoActionPerformed
+        // TODO add your handling code here:
+        jTextPane1.setText("");
+        jTextPane1.setBackground(Color.white);
+        jTextPane1.setForeground(Color.black);
+        jTextPane1.getInputMap().put(KeyStroke.getKeyStroke("control N"), "New");
+    }//GEN-LAST:event_jMenuItemNuevoActionPerformed
+
+    private void jMenuItemPDFActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemPDFActionPerformed
+        // TODO add your handling code here:
+        exportarAPDF();
+    }//GEN-LAST:event_jMenuItemPDFActionPerformed
+
     public void jCheckBoxMenuItem1_otravez(java.awt.event.ActionEvent evt) {
         jRadioButtonNegrita.setVisible(true);
         jRadioButtonCursiva.setVisible(true);
@@ -1575,6 +1761,7 @@ public class Worder extends javax.swing.JFrame {
     private UndoManager undo;
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButtonAyuda;
+    private javax.swing.JButton jButtonBuscar;
     private javax.swing.JButton jButtonColor;
     private javax.swing.JButton jButtonCuboColor;
     private javax.swing.JButton jButtonGuardar;
@@ -1594,6 +1781,8 @@ public class Worder extends javax.swing.JFrame {
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenu jMenu4;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenu jMenuExtras;
+    private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItemAbrir;
     private javax.swing.JMenuItem jMenuItemAlignCenter;
@@ -1601,16 +1790,17 @@ public class Worder extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItemAlignIzq;
     private javax.swing.JMenuItem jMenuItemAyuda;
     private javax.swing.JMenuItem jMenuItemBackgroundColor;
+    private javax.swing.JMenuItem jMenuItemBuscar;
     private javax.swing.JMenuItem jMenuItemCopy;
     private javax.swing.JMenuItem jMenuItemCursi;
     private javax.swing.JMenuItem jMenuItemCut;
     private javax.swing.JMenuItem jMenuItemExtra;
-    private javax.swing.JMenuItem jMenuItemFont;
     private javax.swing.JMenuItem jMenuItemGuardar;
     private javax.swing.JMenuItem jMenuItemHTML;
     private javax.swing.JMenuItem jMenuItemImprimir;
     private javax.swing.JMenuItem jMenuItemNegrita;
     private javax.swing.JMenuItem jMenuItemNuevo;
+    private javax.swing.JMenuItem jMenuItemPDF;
     private javax.swing.JMenuItem jMenuItemPaste;
     private javax.swing.JMenuItem jMenuItemRTF;
     private javax.swing.JMenuItem jMenuItemRedo;
@@ -1620,11 +1810,22 @@ public class Worder extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItemTacha;
     private javax.swing.JMenuItem jMenuItemTextColor;
     private javax.swing.JMenuItem jMenuItemUndo;
+    private javax.swing.JMenuItem jMenuTemasAyuda;
     private javax.swing.JPopupMenu jPopupMenu1;
     private javax.swing.JRadioButton jRadioButtonCursiva;
     private javax.swing.JRadioButton jRadioButtonNegrita;
     private javax.swing.JRadioButton jRadioButtonTachado;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JPopupMenu.Separator jSeparator1;
+    private javax.swing.JPopupMenu.Separator jSeparator10;
+    private javax.swing.JPopupMenu.Separator jSeparator2;
+    private javax.swing.JPopupMenu.Separator jSeparator3;
+    private javax.swing.JPopupMenu.Separator jSeparator4;
+    private javax.swing.JPopupMenu.Separator jSeparator5;
+    private javax.swing.JPopupMenu.Separator jSeparator6;
+    private javax.swing.JPopupMenu.Separator jSeparator7;
+    private javax.swing.JPopupMenu.Separator jSeparator8;
+    private javax.swing.JPopupMenu.Separator jSeparator9;
     private javax.swing.JSlider jSliderTamanoTexto;
     private javax.swing.JTextPane jTextPane1;
     // End of variables declaration//GEN-END:variables
@@ -1652,6 +1853,19 @@ public class Worder extends javax.swing.JFrame {
         public String getDescription() {
 
             return "Documentos de texto enriquecido (.rtf)";
+        }
+    }
+
+    private static class MyFileFilterPDF extends javax.swing.filechooser.FileFilter {
+
+        public boolean accept(File f) {
+
+            return f.isDirectory() || (f.isFile() && f.getName().toLowerCase().endsWith(".pdf"));
+        }
+
+        public String getDescription() {
+
+            return "Documento de formato portátil (.pdf)";
         }
     }
 }
