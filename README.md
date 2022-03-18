@@ -1,7 +1,14 @@
 # picotowriter
-Picoto Writer version 1.1: A free word-processor made by me :)
+Picoto Writer version 2.0, UPDATED!: A free word-processor made by me :)
 
 Originally part of a work for the subject of Interface Development which in my free times I am including new features and updates, it uses Java and his GUI widget toolkit named Swing.
+
+New functions in version 2!!!
+
+* Export to PDF
+* Refreshed interface
+* New function of search text in Web
+* Help Themes
 
 Some functions:
 
