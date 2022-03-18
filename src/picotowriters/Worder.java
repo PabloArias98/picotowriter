@@ -605,6 +605,11 @@ public class Worder extends javax.swing.JFrame {
 
         jMenuTemasAyuda.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F1, 0));
         jMenuTemasAyuda.setText("Temas de ayuda...");
+        jMenuTemasAyuda.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuTemasAyudaActionPerformed(evt);
+            }
+        });
         jMenu3.add(jMenuTemasAyuda);
         jMenu3.add(jSeparator4);
 
@@ -1559,7 +1564,7 @@ public class Worder extends javax.swing.JFrame {
     private void jMenuItemAyudaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItemAyudaActionPerformed
         // TODO add your handling code here:
         //Inicializo la ventana de "Acerca de"
-        Ayuda estancia = new Ayuda();
+        AcercaDe estancia = new AcercaDe();
         estancia.setVisible(true);
     }//GEN-LAST:event_jMenuItemAyudaActionPerformed
 
@@ -1681,6 +1686,20 @@ public class Worder extends javax.swing.JFrame {
         // TODO add your handling code here:
         exportarAPDF();
     }//GEN-LAST:event_jMenuItemPDFActionPerformed
+
+    private void jMenuTemasAyudaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuTemasAyudaActionPerformed
+        // TODO add your handling code here:
+  
+        Ayuda estancia = null;
+        try {
+            estancia = new Ayuda();
+        } catch (IOException ex) {
+            Logger.getLogger(Worder.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        estancia.setVisible(true);  
+
+        
+    }//GEN-LAST:event_jMenuTemasAyudaActionPerformed
 
     public void jCheckBoxMenuItem1_otravez(java.awt.event.ActionEvent evt) {
         jRadioButtonNegrita.setVisible(true);
